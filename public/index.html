@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="ForEditor — lightweight desktop image editor built with Python, Tkinter, Pillow, and OpenCV." />
+  <meta name="theme-color" content="#14161c" />
+  <title>ForEditor — Lightweight Image Editor</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖌️</text></svg>" />
+</head>
+<body>
+  <header class="site-header container">
+    <h1 class="logo">🖌️ <span>ForEditor</span></h1>
+    <p class="tagline">Lightweight image editor · dark modern UI · portfolio ready</p>
+    <div class="badges" aria-hidden="true">
+      <span class="badge">Python 3.10+</span>
+      <span class="badge">Tkinter</span>
+      <span class="badge">Pillow</span>
+      <span class="badge">OpenCV</span>
+      <span class="badge">MIT License</span>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="hero-preview" role="img" aria-label="Pratinjau antarmuka ForEditor">
+      <div class="preview-inner">
+        <div class="preview-sidebar">
+          <div class="line accent"></div>
+          <div class="line"></div>
+          <div class="line"></div>
+          <div class="line"></div>
+          <div class="line" style="width: 55%"></div>
+        </div>
+        <div class="preview-canvas">Canvas 900 × 750</div>
+      </div>
+    </div>
+
+    <div class="notice" role="note">
+      <strong>Catatan deployment:</strong>
+      ForEditor adalah <strong>aplikasi desktop</strong> (Python + Tkinter), bukan web app di browser.
+      Halaman ini adalah <em>landing page portfolio</em> di Vercel.
+      Untuk menggunakan editor, jalankan <code>ForEditor.py</code> di komputer Anda (lihat di bawah).
+    </div>
+
+    <div class="actions">
+      <a class="btn btn-primary" href="https://github.com/farizaadnan21-rgb/ForEditor" target="_blank" rel="noopener noreferrer">
+        ⭐ Lihat di GitHub
+      </a>
+      <a class="btn btn-ghost" href="#install">📥 Cara install</a>
+      <a class="btn btn-ghost" href="#features">✨ Fitur</a>
+    </div>
+
+    <h2 id="features" class="section-title">Fitur utama</h2>
+    <div class="grid">
+      <article class="card">
+        <h3>🛠️ Alat menggambar</h3>
+        <p>Kuas bulat, kotak, spray, penghapus, pilih warna, ukuran kuas 1–50.</p>
+      </article>
+      <article class="card">
+        <h3>🎛️ Penyesuaian gambar</h3>
+        <p>Kecerahan, kontras, saturasi, temperatur warna, denoise — preview langsung.</p>
+      </article>
+      <article class="card">
+        <h3>✨ Efek spesial</h3>
+        <p>Sketsa pensil, cyberpunk neon, sepia vintage — toggle on/off.</p>
+      </article>
+      <article class="card">
+        <h3>↩ Produktivitas</h3>
+        <p>Undo/Redo (20 langkah), load/save PNG, reset kanvas, status bar.</p>
+      </article>
+    </div>
+
+    <h2 id="install" class="section-title">Menjalankan aplikasi desktop</h2>
+    <p style="color: var(--muted)">Clone repository, install dependensi, lalu jalankan:</p>
+    <div class="code-block"><code>git clone https://github.com/farizaadnan21-rgb/ForEditor.git
+cd ForEditor
+pip install -r requirements.txt
+python3 ForEditor.py</code></div>
+
+    <p style="color: var(--muted); font-size: 0.9rem;">
+      Pintasan: <kbd>Ctrl+Z</kbd> Undo · <kbd>Ctrl+Y</kbd> Redo
+    </p>
+
+    <h2 class="section-title">Kenapa bukan editor di browser?</h2>
+    <div class="grid">
+      <article class="card">
+        <h3>Vercel</h3>
+        <p>Hosting untuk situs web statis &amp; framework JS. Cocok untuk halaman ini.</p>
+      </article>
+      <article class="card">
+        <h3>ForEditor.py</h3>
+        <p>GUI Tkinter butuh display OS lokal — tidak bisa di-render di server Vercel.</p>
+      </article>
+      <article class="card">
+        <h3>Alternatif cloud</h3>
+        <p>Release GitHub (`.exe`/AppImage), Snap, atau port ke web dengan Pyodide/React terpisah.</p>
+      </article>
+    </div>
+  </main>
+
+  <footer class="site-footer container">
+    <p>ForEditor · MIT License · Desktop app + static site on Vercel</p>
+  </footer>
+</body>
+</html>

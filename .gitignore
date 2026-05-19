@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build / .NET (bagian eksperimen C# di repo)
+bin/
+obj/
+*.user
+*.suo
+
+# Exports & temp
+*.tmp
+*.log
