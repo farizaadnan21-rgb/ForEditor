@@ -105,6 +105,8 @@ ForEditor/
 
 ## Main Interface
 Modern dark editing workspace with integrated image tools.
+![Uploading image.png…]()
+
 
 ---
 
