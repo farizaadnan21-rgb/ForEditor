@@ -101,15 +101,6 @@ ForEditor/
 
 ---
 
-# 📸 Screenshot
-
-## Main Interface
-Modern dark editing workspace with integrated image tools.
-![Uploading image.png…]()
-
-
----
-
 # 🎯 Goals
 This project was created to:
 - Practice Python GUI development
