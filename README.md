@@ -83,7 +83,7 @@ pip install pillow opencv-python numpy
 Run application:
 
 ```bash
-python3 JawirPaint.py
+python3 ForEditor.py
 ```
 
 ---
