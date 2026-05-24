@@ -8,7 +8,7 @@ Designed with a clean dark interface and portfolio-ready desktop experience.
 ForEditor/
 ├── preview.png
 ├── README.md
-└── JawirPaint.py
+└── ForPaint.py
 ```
 
 ---
@@ -104,12 +104,10 @@ python3 ForEditor.py
 ```bash
 ForEditor/
 ├── FOR_EDITOR/
-├── public/
-├── JawirPaint.py
+├── ForPaint.py
 ├── ForEditor.py
 ├── README.md
-├── requirements.txt
-└── vercel.json
+└── requirements.txt
 ```
 
 ---
