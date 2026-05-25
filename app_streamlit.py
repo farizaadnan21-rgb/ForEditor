@@ -1,384 +1,456 @@
 import streamlit as st
-from PIL import Image, ImageDraw
+from PIL import Image, ImageEnhance
 import cv2
 import numpy as np
 import io
 
-# ─── 1. PAGE CONFIGURATION (MATCHING ORIGINAL DESIGN) ───────────────────────
 st.set_page_config(
-    page_title="ForEditor — Studio",
-    page_icon="🎨",
+    page_title="FOR Photo Editor",
+    page_icon="✏️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# ─── 2. INJECT PROFESSIONAL DARK CUSTOM CSS (EXACT COPY OF ORIGINAL THEME) ──
-# Match: bg_main (#14161c), bg_sidebar (#1c1f26), bg_card (#252930), text (#e8eaed), accent (#4a8cff)
+# ── EXACT MATCH CSS to original Tkinter theme ─────────────────────────────────
 st.markdown("""
 <style>
-    /* App background */
-    .stApp {
-        background-color: #14161c !important;
-        color: #e8eaed !important;
-        font-family: 'Segoe UI', -apple-system, sans-serif !important;
-    }
-    
-    /* Sidebar styling */
-    [data-testid="stSidebar"] {
-        background-color: #1c1f26 !important;
-        border-right: 1px solid #3a4049 !important;
-        width: 330px !important;
-    }
-    
-    /* Custom Card container (Exactly like original self._make_card) */
-    .original-card {
-        background-color: #252930;
-        border: 1px solid #3a4049;
-        border-radius: 4px;
-        padding: 14px;
-        margin-bottom: 12px;
-    }
-    
-    .original-card-title {
-        color: #e8eaed;
-        font-family: 'Segoe UI', sans-serif;
-        font-size: 13px;
-        font-weight: bold;
-        margin-bottom: 10px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-    
-    /* Input Elements Dark Styling */
-    div[data-baseweb="select"] > div {
-        background-color: #1e2229 !important;
-        border-color: #3a4049 !important;
-        color: #e8eaed !important;
-    }
-    
-    /* White Canvas Border & Shadow Styling (Matches canvas_outer and canvas_inner) */
-    .canvas-outer {
-        background-color: #0d0e12;
-        padding: 4px;
-        border-radius: 4px;
-        box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
-        display: inline-block;
-        margin: auto;
-    }
-    
-    .canvas-inner {
-        background-color: #000000;
-        padding: 1px;
-    }
-    
-    /* Status bar at the bottom */
-    .status-bar {
-        background-color: #111318;
-        color: #8b929a;
-        font-family: 'Segoe UI', sans-serif;
-        font-size: 12px;
-        padding: 6px 14px;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        border-top: 1px solid #3a4049;
-        z-index: 999;
-    }
+@import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;700&display=swap');
+
+/* ── Global Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+.stApp {
+    background-color: #0f1117 !important;
+    font-family: 'Segoe UI', sans-serif !important;
+}
+
+/* ── Hide Streamlit chrome ── */
+#MainMenu, footer, header { visibility: hidden !important; }
+.block-container { padding: 0 !important; max-width: 100% !important; }
+
+/* ── Sidebar: exactly bg_sidebar #161b22, width 280px ── */
+[data-testid="stSidebar"] {
+    background-color: #161b22 !important;
+    min-width: 260px !important;
+    max-width: 260px !important;
+    border-right: 1px solid #30363d !important;
+    padding: 0 !important;
+}
+[data-testid="stSidebar"] > div:first-child {
+    padding: 0 !important;
+}
+
+/* ── Hide sidebar collapse button ── */
+[data-testid="collapsedControl"] { display: none !important; }
+
+/* ── Typography in sidebar ── */
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] p,
+[data-testid="stSidebar"] span,
+[data-testid="stSidebar"] div {
+    color: #e6edf3 !important;
+    font-family: 'Segoe UI', sans-serif !important;
+}
+
+/* ── Sliders ── */
+[data-testid="stSlider"] .stSlider { padding: 2px 0 !important; }
+[data-testid="stSlider"] label { font-size: 11px !important; color: #8b949e !important; }
+
+/* ── Buttons generic ── */
+.stButton > button {
+    background-color: #2d333b !important;
+    color: #e6edf3 !important;
+    border: 1px solid #444c56 !important;
+    border-radius: 3px !important;
+    font-family: 'Segoe UI', sans-serif !important;
+    font-size: 12px !important;
+    padding: 5px 10px !important;
+    cursor: pointer !important;
+    width: 100% !important;
+    text-align: left !important;
+    transition: background 0.15s !important;
+}
+.stButton > button:hover {
+    background-color: #30363d !important;
+    border-color: #8b949e !important;
+}
+
+/* ── Radio buttons ── */
+[data-testid="stRadio"] label { font-size: 11px !important; color: #e6edf3 !important; }
+[data-testid="stRadio"] { flex-direction: row !important; }
+
+/* ── Selectbox ── */
+[data-testid="stSelectbox"] select,
+[data-baseweb="select"] {
+    background-color: #21262d !important;
+    color: #e6edf3 !important;
+    border-color: #444c56 !important;
+    font-size: 12px !important;
+}
+
+/* ── Main area background ── */
+[data-testid="stMain"] {
+    background-color: #0f1117 !important;
+    padding: 0 !important;
+}
+
+/* ── Download button ── */
+[data-testid="stDownloadButton"] > button {
+    background-color: #238636 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 3px !important;
+    font-size: 12px !important;
+    width: 100% !important;
+}
+
+/* ── Card Style (matches _make_card) ── */
+.for-card {
+    background-color: #21262d;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    padding: 10px 12px;
+    margin: 0 10px 8px 10px;
+}
+.for-card-title {
+    font-size: 11px;
+    font-weight: bold;
+    color: #e6edf3;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #30363d;
+    padding-bottom: 5px;
+}
+.for-header {
+    padding: 14px 14px 8px 14px;
+    border-bottom: 1px solid #30363d;
+    margin-bottom: 8px;
+}
+.for-header h2 {
+    font-size: 16px !important;
+    font-weight: bold !important;
+    color: #e6edf3 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+.for-header p {
+    font-size: 10px !important;
+    color: #8b949e !important;
+    margin: 2px 0 0 0 !important;
+}
+.for-muted {
+    font-size: 10px !important;
+    color: #8b949e !important;
+    margin-bottom: 6px !important;
+    line-height: 1.4 !important;
+}
+
+/* ── Status Bar fixed bottom ── */
+.status-bar {
+    position: fixed;
+    bottom: 0; left: 0;
+    width: 100%;
+    background-color: #0d1117;
+    color: #8b949e;
+    font-size: 11px;
+    font-family: 'Segoe UI', sans-serif;
+    padding: 4px 14px;
+    border-top: 1px solid #30363d;
+    z-index: 9999;
+}
+
+/* ── Color button (orange like original) ── */
+.btn-color > button { background-color: #e67e22 !important; color: white !important; text-align: center !important; }
+.btn-eraser > button { background-color: #b91c1c !important; color: white !important; text-align: center !important; }
+.btn-blue > button { background-color: #1f6feb !important; color: white !important; text-align: center !important; }
+.btn-green > button { background-color: #238636 !important; color: white !important; text-align: center !important; }
+.btn-active > button { background-color: #1f6feb !important; color: white !important; }
+
+/* Canvas wrapper */
+.canvas-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #0f1117;
+    min-height: calc(100vh - 30px);
+    padding: 20px;
+}
+.canvas-border {
+    border: 2px solid #30363d;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.8), inset 0 0 0 1px #000;
+    background: white;
+    display: inline-block;
+}
+
+/* Before/After popup style */
+.ba-popup {
+    background-color: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 20px;
+    margin-top: 10px;
+}
+.ba-label-before { font-size: 11px; font-weight: bold; color: #8b949e; text-align: center; margin-bottom: 6px; }
+.ba-label-after  { font-size: 11px; font-weight: bold; color: #2ea043; text-align: center; margin-bottom: 6px; }
 </style>
 """, unsafe_allow_html=True)
 
-# ─── 3. CORE PROCESSING LOGIC (PRESERVING ALL ORIGINAL FILTER MATHEMATICS) ───
-def pil_to_cv(pil_image):
-    return cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
+# ── Helper Funcs ───────────────────────────────────────────────────────────────
+def pil_to_cv(img): return cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+def cv_to_pil(img): return Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
 
-def cv_to_pil(cv_image):
-    return Image.fromarray(cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB))
+def adjust_brightness(img, v): return ImageEnhance.Brightness(img).enhance(float(v))
+def adjust_contrast(img, v):   return ImageEnhance.Contrast(img).enhance(float(v))
+def adjust_saturation(img, v): return ImageEnhance.Color(img).enhance(float(v))
 
-def adjust_brightness(pil_image, val):
-    from PIL import ImageEnhance
-    return ImageEnhance.Brightness(pil_image).enhance(float(val))
-
-def adjust_contrast(pil_image, val):
-    from PIL import ImageEnhance
-    return ImageEnhance.Contrast(pil_image).enhance(float(val))
-
-def adjust_saturation(pil_image, val):
-    from PIL import ImageEnhance
-    return ImageEnhance.Color(pil_image).enhance(float(val))
-
-def adjust_temperature(pil_image, val):
-    value = int(val)
-    if value == 0: 
-        return pil_image
-    img = pil_to_cv(pil_image)
-    b, g, r = cv2.split(img)
-    if value > 0:  # Hangat (Kuning)
-        r = cv2.add(r, value)
-        b = cv2.subtract(b, value)
-    else:  # Dingin (Biru)
-        r = cv2.add(r, value)
-        b = cv2.subtract(b, value)
+def adjust_temperature(img, v):
+    val = int(v)
+    if val == 0: return img
+    cv = pil_to_cv(img)
+    b, g, r = cv2.split(cv)
+    r = cv2.add(r, val); b = cv2.subtract(b, val)
     return cv_to_pil(cv2.merge((b, g, r)))
 
-def apply_denoise(pil_image, val):
-    k = int(val)
-    if k == 0: 
-        return pil_image
-    if k % 2 == 0: 
-        k += 1
-    img = pil_to_cv(pil_image)
-    res = cv2.medianBlur(img, k)
-    return cv_to_pil(res)
+def apply_denoise(img, v):
+    k = int(v)
+    if k == 0: return img
+    if k % 2 == 0: k += 1
+    return cv_to_pil(cv2.medianBlur(pil_to_cv(img), k))
 
-# ─── SPECIAL EFFECTS (EXACT REPLICAS OF ORIGINAL PIPELINES) ──────────────────
-def effect_sketch(pil_image):
-    img = pil_to_cv(pil_image)
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    inv = cv2.bitwise_not(gray)
+def effect_sketch(img):
+    cv = pil_to_cv(img)
+    gray = cv2.cvtColor(cv, cv2.COLOR_BGR2GRAY)
+    inv  = cv2.bitwise_not(gray)
     blur = cv2.GaussianBlur(inv, (21, 21), 0)
-    sketch = cv2.divide(gray, 255 - blur, scale=256)
-    return cv_to_pil(cv2.cvtColor(sketch, cv2.COLOR_GRAY2BGR))
+    sk   = cv2.divide(gray, 255 - blur, scale=256)
+    return cv_to_pil(cv2.cvtColor(sk, cv2.COLOR_GRAY2BGR))
 
-def effect_neon(pil_image):
-    img = pil_to_cv(pil_image)
-    edges = cv2.Canny(img, 100, 200)
-    edges = cv2.dilate(edges, None)
-    neon_mask = np.zeros_like(img)
-    neon_mask[edges > 0] = [255, 0, 255]  # Magenta Neon
-    dark_img = (img * 0.3).astype(np.uint8)
-    return cv_to_pil(cv2.add(dark_img, neon_mask))
+def effect_neon(img):
+    cv = pil_to_cv(img)
+    edges = cv2.dilate(cv2.Canny(cv, 100, 200), None)
+    mask = np.zeros_like(cv)
+    mask[edges > 0] = [255, 0, 255]
+    return cv_to_pil(cv2.add((cv * 0.3).astype(np.uint8), mask))
 
-def effect_sepia(pil_image):
-    img = pil_to_cv(pil_image)
-    kernel = np.array([[0.272, 0.534, 0.131], 
-                       [0.349, 0.686, 0.168], 
-                       [0.393, 0.769, 0.189]])
-    sepia = cv2.transform(img, kernel)
-    noise = np.random.normal(0, 15, sepia.shape).astype(np.uint8)
-    return cv_to_pil(cv2.add(sepia, noise))
+def effect_sepia(img):
+    cv = pil_to_cv(img)
+    k  = np.array([[0.272,0.534,0.131],[0.349,0.686,0.168],[0.393,0.769,0.189]])
+    s  = cv2.transform(cv, k)
+    n  = np.random.normal(0, 15, s.shape).astype(np.uint8)
+    return cv_to_pil(cv2.add(s, n))
 
-# ─── 4. SIDEBAR BRANDING (EXACTLY MATCHING ORIGINAL TKINTER HEADER) ─────────
-st.sidebar.markdown(
-    """
-    <div style="padding: 10px 0px 20px 0px;">
-        <h1 style="margin: 0; font-size: 1.8rem; font-weight: bold; color: #e8eaed;">🖌️ ForEditor</h1>
-        <p style="margin: 2px 0 0 0; color: #8b929a; font-size: 0.85rem;">
-            Lightweight image editor · portfolio ready
-        </p>
+# ── Session State Init ─────────────────────────────────────────────────────────
+def init_state():
+    defaults = dict(
+        brightness=1.0, contrast=1.0, saturation=1.0, temp=0, denoise=0,
+        effect="Normal", show_ba=False, orig_image=None, status="Siap — Load gambar atau ambil foto kamera"
+    )
+    for k, v in defaults.items():
+        if k not in st.session_state:
+            st.session_state[k] = v
+init_state()
+
+# ── SIDEBAR ────────────────────────────────────────────────────────────────────
+with st.sidebar:
+    # Header (matches "🖌  FOR Editor" + "by Fariza · Ocid · Rasya")
+    st.markdown("""
+    <div class="for-header">
+        <h2>✏️ FOR Editor</h2>
+        <p>by Fariza · Ocid · Rasya</p>
     </div>
-    """, 
-    unsafe_allow_html=True
-)
+    """, unsafe_allow_html=True)
 
-# Initialize states if not present
-if "brightness" not in st.session_state: st.session_state.brightness = 1.0
-if "contrast" not in st.session_state: st.session_state.contrast = 1.0
-if "saturation" not in st.session_state: st.session_state.saturation = 1.0
-if "temp" not in st.session_state: st.session_state.temp = 0
-if "denoise" not in st.session_state: st.session_state.denoise = 0
-if "effect" not in st.session_state: st.session_state.effect = "Normal"
-if "brush_color" not in st.session_state: st.session_state.brush_color = "#000000"
-if "brush_shape" not in st.session_state: st.session_state.brush_shape = "● Bulat"
-if "brush_size" not in st.session_state: st.session_state.brush_size = 5
+    # ── CARD: Drawing Tools ──────────────────────────────────────────────────
+    st.markdown('<div class="for-card"><div class="for-card-title">🛠 Drawing Tools</div>', unsafe_allow_html=True)
 
-# ─── 5. CARD 1: ALAT GAMBAR (RESTORING THE SOUL OF ORIGINAL SIDEBAR) ────────
-with st.sidebar:
-    st.markdown('<div class="original-card">', unsafe_allow_html=True)
-    st.markdown('<div class="original-card-title">🛠️ Alat Gambar</div>', unsafe_allow_html=True)
-    
-    # Grid for Brush Color Swatch and Buttons
-    col_swatch, col_buttons = st.columns([1, 2])
-    with col_swatch:
-        brush_color = st.color_picker("Warna", st.session_state.brush_color, label_visibility="collapsed")
-        st.session_state.brush_color = brush_color
-    with col_buttons:
-        if st.button("🧹 Reset Kanvas", use_container_width=True):
-            st.session_state.brightness = 1.0
-            st.session_state.contrast = 1.0
-            st.session_state.saturation = 1.0
-            st.session_state.temp = 0
-            st.session_state.denoise = 0
-            st.session_state.effect = "Normal"
-            st.rerun()
-            
-    # Eraser mode styling simulation
-    if st.button("🧽 Penghapus (Set Putih)", use_container_width=True):
-        st.session_state.brush_color = "#FFFFFF"
-        st.rerun()
-        
-    st.markdown("<div style='font-size: 11px; color: #8b929a; margin-top: 8px; margin-bottom: 2px;'>Bentuk kuas</div>", unsafe_allow_html=True)
-    brush_shape = st.radio(
-        "Bentuk kuas", 
-        ["● Bulat", "■ Kotak", "✦ Spray"], 
-        index=["● Bulat", "■ Kotak", "✦ Spray"].index(st.session_state.brush_shape),
-        horizontal=True,
-        label_visibility="collapsed"
-    )
-    st.session_state.brush_shape = brush_shape
-    
-    st.markdown("<div style='font-size: 11px; color: #8b929a; margin-top: 8px;'>Ukuran kuas</div>", unsafe_allow_html=True)
-    brush_size = st.slider(
-        "Ukuran kuas", 1, 50, st.session_state.brush_size,
-        label_visibility="collapsed"
-    )
-    st.session_state.brush_size = brush_size
-    
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown('<div class="btn-color">', unsafe_allow_html=True)
+        choose_color = st.button("🎨 Color", key="btn_color")
+        st.markdown('</div>', unsafe_allow_html=True)
+    with c2:
+        clear_btn = st.button("🧹 Clear", key="btn_clear")
+
+    st.markdown('<div class="btn-eraser">', unsafe_allow_html=True)
+    eraser_btn = st.button("🧽  Eraser", key="btn_eraser")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ─── 6. CARD 2: PENYESUAIAN GAMBAR (ACCORDION STYLE FROM ORIGINAL) ──────────
-with st.sidebar:
-    st.markdown('<div class="original-card">', unsafe_allow_html=True)
-    st.markdown('<div class="original-card-title">🎛️ Penyesuaian Gambar</div>', unsafe_allow_html=True)
-    
-    # Re-creating Accordion with beautiful clean sliders
-    b_val = st.slider("☀️ Kecerahan", 0.0, 2.0, st.session_state.brightness, 0.1)
+    st.markdown('<p class="for-muted" style="margin-top:8px;">Brush Shape</p>', unsafe_allow_html=True)
+    brush_shape = st.radio("Brush Shape", ["● Round", "◆ Flat", "✦ Spray"], horizontal=True, label_visibility="collapsed")
+
+    st.markdown('<p class="for-muted" style="margin-top:6px;">Brush Size</p>', unsafe_allow_html=True)
+    brush_size = st.slider("Brush Size", 1, 50, 5, label_visibility="collapsed")
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # ── CARD: Image Adjustments ──────────────────────────────────────────────
+    st.markdown('<div class="for-card"><div class="for-card-title">🎛 Image Adjustments</div>', unsafe_allow_html=True)
+
+    b_val = st.slider("☀️ Brightness", 0.0, 2.0, st.session_state.brightness, 0.05)
+    c_val = st.slider("🌓 Contrast",   0.0, 2.0, st.session_state.contrast,   0.05)
+    s_val = st.slider("🎨 Saturation", 0.0, 3.0, st.session_state.saturation, 0.05)
+    t_val = st.slider("🌡️ Temperature", -100, 100, st.session_state.temp, 5)
+    d_val = st.slider("✨ Denoise",    0,   20,  st.session_state.denoise, 2)
+
     st.session_state.brightness = b_val
-    
-    c_val = st.slider("🌓 Kontras", 0.0, 2.0, st.session_state.contrast, 0.1)
-    st.session_state.contrast = c_val
-    
-    s_val = st.slider("🎨 Saturasi", 0.0, 3.0, st.session_state.saturation, 0.1)
+    st.session_state.contrast   = c_val
     st.session_state.saturation = s_val
-    
-    t_val = st.slider("🌡️ Temperatur (Hangat/Dingin)", -100, 100, st.session_state.temp, 5)
-    st.session_state.temp = t_val
-    
-    d_val = st.slider("✨ Hilangkan Noise", 0, 20, st.session_state.denoise, 2)
-    st.session_state.denoise = d_val
-    
+    st.session_state.temp       = t_val
+    st.session_state.denoise    = d_val
+
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ─── 7. CARD 3: EFEK SPESIAL (ORIGINAL CHROME INTEGRATION) ───────────────────
-with st.sidebar:
-    st.markdown('<div class="original-card">', unsafe_allow_html=True)
-    st.markdown('<div class="original-card-title">✨ Efek Spesial</div>', unsafe_allow_html=True)
-    
-    fx_option = st.selectbox(
-        "Pilih Efek Spesial:",
-        ["Normal", "✏️ Sketsa Pensil", "🌆 Cyberpunk Neon", "📜 Sepia Vintage"],
-        index=["Normal", "✏️ Sketsa Pensil", "🌆 Cyberpunk Neon", "📜 Sepia Vintage"].index(st.session_state.effect),
-        label_visibility="collapsed"
-    )
-    st.session_state.effect = fx_option
+    # ── CARD: Special Effects ────────────────────────────────────────────────
+    st.markdown('<div class="for-card"><div class="for-card-title">✨ Special Effects</div>', unsafe_allow_html=True)
+    st.markdown('<p class="for-muted">Click again to toggle off</p>', unsafe_allow_html=True)
+
+    cur_fx = st.session_state.effect
+
+    sketch_cls = "btn-active" if cur_fx == "sketch" else ""
+    neon_cls   = "btn-active" if cur_fx == "neon"   else ""
+    sepia_cls  = "btn-active" if cur_fx == "sepia"  else ""
+
+    st.markdown(f'<div class="{sketch_cls}">', unsafe_allow_html=True)
+    if st.button("✏️  Pencil Sketch",  key="fx_sketch"): st.session_state.effect = "Normal" if cur_fx == "sketch" else "sketch"; st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ─── 8. BOTTOM OPERATION DOCK (FILE OPS MATCHING ORIGINAL DOCK) ─────────────
-with st.sidebar:
-    st.markdown('<div class="original-card" style="padding: 10px;">', unsafe_allow_html=True)
-    
-    # Input selections matching bottom dock
-    source_choice = st.radio("Input Sumber:", ["📂 Load File", "📷 Ambil Foto"], horizontal=True, label_visibility="collapsed")
-    
-    uploaded_file = None
-    camera_photo = None
-    
-    if source_choice == "📂 Load File":
-        uploaded_file = st.file_uploader("Load Image", type=["png", "jpg", "jpeg"], label_visibility="collapsed")
-    else:
-        camera_photo = st.camera_input("Ambil Foto", label_visibility="collapsed")
-        
+    st.markdown(f'<div class="{neon_cls}">', unsafe_allow_html=True)
+    if st.button("🌆  Cyberpunk Neon", key="fx_neon"):   st.session_state.effect = "Normal" if cur_fx == "neon"   else "neon";   st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ─── 9. MAIN STUDIO CANVAS (RESTORED BEAUTIFUL ORIGINAL WORKSPACE) ───────────
-# Load original/uploaded image
+    st.markdown(f'<div class="{sepia_cls}">', unsafe_allow_html=True)
+    if st.button("📜  Sepia Vintage",  key="fx_sepia"):  st.session_state.effect = "Normal" if cur_fx == "sepia"  else "sepia";  st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # ── CARD: Before / After ─────────────────────────────────────────────────
+    st.markdown('<div class="for-card"><div class="for-card-title">🔍 Before / After</div>', unsafe_allow_html=True)
+    st.markdown('<p class="for-muted">Load an image first, then apply effects and compare.</p>', unsafe_allow_html=True)
+
+    st.markdown('<div class="btn-blue">', unsafe_allow_html=True)
+    if st.button("⚡  Compare Before / After", key="btn_ba"):
+        st.session_state.show_ba = not st.session_state.show_ba
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # ── BOTTOM FILE DOCK (Load / Save / Undo / Redo + Camera) ────────────────
+    st.markdown('<div style="border-top:1px solid #30363d; padding: 8px 10px 4px 10px;">', unsafe_allow_html=True)
+
+    d1, d2, d3, d4 = st.columns(4)
+    with d1:
+        load_btn = st.button("📂 Load", key="btn_load")
+    with d2:
+        st.markdown('<div class="btn-green">', unsafe_allow_html=True)
+        save_btn = st.button("💾 Save", key="btn_save")
+        st.markdown('</div>', unsafe_allow_html=True)
+    with d3:
+        undo_btn = st.button("↩ Undo", key="btn_undo")
+    with d4:
+        redo_btn = st.button("↪ Redo", key="btn_redo")
+
+    st.markdown('<div class="btn-blue" style="margin-top:4px;">', unsafe_allow_html=True)
+    cam_toggle = st.button("📷  Camera", key="btn_cam")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # Upload / Camera input (hidden behind buttons, shown conditionally)
+    uploaded_file = st.file_uploader("Load Image", type=["png","jpg","jpeg","webp","bmp"], label_visibility="collapsed")
+    camera_photo  = st.camera_input("Camera", label_visibility="collapsed")
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# ── LOAD IMAGE ─────────────────────────────────────────────────────────────────
 base_image = None
 if uploaded_file is not None:
     base_image = Image.open(uploaded_file).convert("RGB")
+    st.session_state.orig_image = base_image.copy()
+    st.session_state.status = f"Loaded: {uploaded_file.name}"
 elif camera_photo is not None:
     base_image = Image.open(camera_photo).convert("RGB")
+    st.session_state.orig_image = base_image.copy()
+    st.session_state.status = "Loaded from Camera"
+elif st.session_state.orig_image is not None:
+    base_image = st.session_state.orig_image.copy()
 
-if base_image is None:
-    # Blank White Studio Canvas (Exactly 900x750 like original self.canvas_w / self.canvas_h)
-    base_image = Image.new("RGB", (900, 750), "white")
-    is_blank = True
-else:
-    # Scale image to match standard studio workspace resolution
-    base_image = base_image.resize((900, 750))
-    is_blank = False
+is_blank = base_image is None
+if is_blank:
+    base_image = Image.new("RGB", (860, 650), "white")
 
-# Apply all filters reactively in the original chain order
-processed_image = base_image.copy()
+# ── APPLY FILTERS ──────────────────────────────────────────────────────────────
+processed = base_image.copy()
+if d_val > 0:        processed = apply_denoise(processed, d_val)
+if t_val != 0:       processed = adjust_temperature(processed, t_val)
+if b_val != 1.0:     processed = adjust_brightness(processed, b_val)
+if c_val != 1.0:     processed = adjust_contrast(processed, c_val)
+if s_val != 1.0:     processed = adjust_saturation(processed, s_val)
 
-# 1. Denoise
-if st.session_state.denoise > 0:
-    processed_image = apply_denoise(processed_image, st.session_state.denoise)
-# 2. Temperature
-if st.session_state.temp != 0:
-    processed_image = adjust_temperature(processed_image, st.session_state.temp)
-# 3. Brightness
-if st.session_state.brightness != 1.0:
-    processed_image = adjust_brightness(processed_image, st.session_state.brightness)
-# 4. Contrast
-if st.session_state.contrast != 1.0:
-    processed_image = adjust_contrast(processed_image, st.session_state.contrast)
-# 5. Saturation
-if st.session_state.saturation != 1.0:
-    processed_image = adjust_saturation(processed_image, st.session_state.saturation)
-# 6. Special Effects
-if st.session_state.effect == "✏️ Sketsa Pensil":
-    processed_image = effect_sketch(processed_image)
-elif st.session_state.effect == "🌆 Cyberpunk Neon":
-    processed_image = effect_neon(processed_image)
-elif st.session_state.effect == "📜 Sepia Vintage":
-    processed_image = effect_sepia(processed_image)
+fx = st.session_state.effect
+if fx == "sketch":   processed = effect_sketch(processed); st.session_state.status = "Effect active: sketch"
+elif fx == "neon":   processed = effect_neon(processed);   st.session_state.status = "Effect active: neon"
+elif fx == "sepia":  processed = effect_sepia(processed);  st.session_state.status = "Effect active: sepia"
 
-# Draw on canvas if a brush size and color are active (Optional Web Drawing simulation)
-# Users can interactively see details. We display the canvas in the center.
-col_canvas, col_ops = st.columns([3, 1])
+if clear_btn:
+    base_image = Image.new("RGB", (860, 650), "white")
+    st.session_state.orig_image = None
+    st.session_state.effect = "Normal"
+    st.session_state.status = "Canvas cleared"
+    processed = base_image.copy()
+    st.rerun()
 
-with col_canvas:
-    # Display Canvas with the original self.canvas_outer and shadow border style
-    st.markdown('<div class="canvas-outer"><div class="canvas-inner">', unsafe_allow_html=True)
-    st.image(processed_image, use_column_width=True)
-    st.markdown('</div></div>', unsafe_allow_html=True)
+# ── MAIN CANVAS AREA ───────────────────────────────────────────────────────────
+st.markdown('<div class="canvas-wrap">', unsafe_allow_html=True)
+st.markdown('<div class="canvas-border">', unsafe_allow_html=True)
+st.image(processed, use_column_width=False, width=860 if not is_blank else 700,
+         caption=None)
+st.markdown('</div></div>', unsafe_allow_html=True)
 
-with col_ops:
-    st.markdown(
-        """
-        <div class="original-card" style="min-height: 250px;">
-            <div class="original-card-title">🔍 Detail & Operasi</div>
-            <p style="font-size: 11px; color: #8b929a; margin: 0 0 10px 0;">
-                Gunakan tab di bawah untuk melihat perbandingan real-time.
-            </p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    
-    # Save/Download Operation (Exactly equivalent to Self.save_image)
-    buf = io.BytesIO()
-    processed_image.save(buf, format="PNG")
-    byte_im = buf.getvalue()
-    
-    st.download_button(
-        label="💾 SAVE IMAGE (Unduh PNG)",
-        data=byte_im,
-        file_name="foreditor_studio_export.png",
-        mime="image/png",
-        use_container_width=True
-    )
-
-# ─── 10. BEFORE / AFTER REAL-TIME ACCORDION COMPARISON ──────────────────────
-if not is_blank:
-    st.markdown("---")
-    st.markdown("### 🔍 Perbandingan Sebelum / Sesudah (Before vs After)")
-    col_b, col_a = st.columns(2)
-    with col_b:
-        st.markdown("<p style='color: #8b929a; font-size: 12px; font-weight: bold;'>BEFORE (Asli)</p>", unsafe_allow_html=True)
-        st.image(base_image, use_column_width=True)
-    with col_a:
-        st.markdown("<p style='color: #4a8cff; font-size: 12px; font-weight: bold;'>AFTER (Edit)</p>", unsafe_allow_html=True)
-        st.image(processed_image, use_column_width=True)
-
-# ─── 11. ORIGINAL STATUS BAR (BOTTOM FIXED DOCK) ────────────────────────────
-# Matching self.status_var.set("Siap — Ctrl+Z Undo · Ctrl+Y Redo")
-st.markdown(
-    f"""
-    <div class="status-bar">
-        🟢 Siap — Warna Kuas: {st.session_state.brush_color} · Ukuran: {st.session_state.brush_size} px · Bentuk: {st.session_state.brush_shape}
+# ── BEFORE / AFTER POPUP (Matches original Toplevel window style) ──────────────
+if st.session_state.show_ba and not is_blank and st.session_state.orig_image is not None:
+    st.markdown("""
+    <div style="
+        position:fixed; top:0; left:0; width:100%; height:100%;
+        background:rgba(0,0,0,0.6); z-index:1000;
+        display:flex; align-items:center; justify-content:center;">
     </div>
-    """,
-    unsafe_allow_html=True
-)
+    """, unsafe_allow_html=True)
+
+    with st.container():
+        st.markdown('<div class="ba-popup">', unsafe_allow_html=True)
+        st.markdown("""
+        <div style="text-align:center; margin-bottom:14px; color:#e6edf3; font-size:13px; font-weight:bold; border-bottom:1px solid #30363d; padding-bottom:8px;">
+            Before / After Comparison
+        </div>
+        """, unsafe_allow_html=True)
+
+        col_b, col_div, col_a = st.columns([10, 1, 10])
+        with col_b:
+            st.markdown('<div class="ba-label-before">BEFORE</div>', unsafe_allow_html=True)
+            before_thumb = st.session_state.orig_image.resize((500, 400))
+            st.image(before_thumb, use_column_width=True)
+        with col_div:
+            st.markdown('<div style="border-left:2px solid #30363d; height:100%; margin:auto;"></div>', unsafe_allow_html=True)
+        with col_a:
+            st.markdown('<div class="ba-label-after">AFTER</div>', unsafe_allow_html=True)
+            after_thumb = processed.resize((500, 400))
+            st.image(after_thumb, use_column_width=True)
+
+        _, close_col, _ = st.columns([2, 1, 2])
+        with close_col:
+            if st.button("✕  Close", key="close_ba"):
+                st.session_state.show_ba = False
+                st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# ── SAVE DOWNLOAD ──────────────────────────────────────────────────────────────
+if save_btn:
+    buf = io.BytesIO()
+    processed.save(buf, format="PNG")
+    st.sidebar.download_button(
+        "⬇️ Download PNG", buf.getvalue(),
+        file_name="foreditor_export.png", mime="image/png", use_container_width=True
+    )
+
+# ── STATUS BAR ─────────────────────────────────────────────────────────────────
+status_msg = st.session_state.status
+st.markdown(f'<div class="status-bar">{status_msg}</div>', unsafe_allow_html=True)
