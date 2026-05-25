@@ -88,16 +88,40 @@ cd ForEditor
 Install dependencies:
 
 ```bash
-pip install pillow opencv-python numpy
+pip install -r requirements.txt
 ```
 
-Run application:
+Run Desktop application:
 
 ```bash
 python3 ForEditor.py
 ```
 
 ---
+
+## 🌐 Streamlit Web Version
+
+You can also run the modern web-based version of ForEditor Studio locally or deploy it to the cloud for your portfolio!
+
+Run Web App locally:
+
+```bash
+streamlit run app_streamlit.py
+```
+
+### ☁️ How to Deploy to Streamlit Cloud (FREE)
+1. Push this repository to GitHub:
+   ```bash
+   git add .
+   git commit -m "Add Streamlit web app version"
+   git push origin main
+   ```
+2. Visit [Streamlit Community Cloud](https://streamlit.io/cloud) and log in with your GitHub account.
+3. Click **New App**, select your repository `ForEditor`, branch `main`, and set Main file path to `app_streamlit.py`.
+4. Click **Deploy!** 🚀 Your portfolio demo will be live with a shareable URL in minutes.
+
+---
+
 
 # 📂 Project Structure
 
