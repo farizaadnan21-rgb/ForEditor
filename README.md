@@ -4,12 +4,7 @@ Modern lightweight image editor built with Python Tkinter.
 Designed with a clean dark interface and portfolio-ready desktop experience.
 
 ---
-```txt
-ForEditor/
-├── preview.png
-├── README.md
-└── ForPaint.py
-```
+
 
 ---
 
@@ -73,28 +68,33 @@ ForEditor/
 
 # 🚀 Installation
 
-Clone repository:
-
+**1. Clone repository:**
 ```bash
 git clone https://github.com/farizaadnan21-rgb/ForEditor.git
 ```
 
-Open folder:
-
+**2. Masuk ke folder STUDIO:**
 ```bash
-cd ForEditor
+cd STUDIO
 ```
 
-Install dependencies:
-
+**3. Install semua dependencies:**
 ```bash
-pip install pillow opencv-python numpy
+pip install -r requirements.txt
 ```
 
-Run application:
+---
 
+# ▶️ Cara Menjalankan
+
+### 🖌️ FOR Editor (Editor Foto)
 ```bash
-python3 ForEditor.py
+python3 FOR_EDITOR/main.py
+```
+
+### 🎨 FOR Paint (Aplikasi Melukis)
+```bash
+python3 ForPaint.py
 ```
 
 ---
@@ -102,10 +102,13 @@ python3 ForEditor.py
 # 📂 Project Structure
 
 ```bash
-ForEditor/
+STUDIO/
 ├── FOR_EDITOR/
-├── ForPaint.py
-├── ForEditor.py
+│   ├── main.py        ← Editor foto utama
+│   ├── filters.py     ← Logika filter & efek
+│   └── tools.py       ← Logika kuas & kamera
+├── ForEditor.py       ← Versi alternatif editor
+├── ForPaint.py        ← Aplikasi melukis
 ├── README.md
 └── requirements.txt
 ```
